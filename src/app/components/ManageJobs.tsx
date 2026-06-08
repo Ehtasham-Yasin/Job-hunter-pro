@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, X, ChevronLeft, Users, Eye, Calendar, Plus, MoreVertical, Edit2, Trash2, ExternalLink } from 'lucide-react';
 import type { NavProps } from '../types';
 
@@ -48,6 +48,8 @@ const getStatusConfig = (status: JobStatus) => {
 
 export function ManageJobs({ navigate, goBack }: NavProps) {
     const [query, setQuery] = useState('');
+    const [jobs, setJobs] = useState<ManagedJob[]>([]);
+    const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState<JobStatus | 'all'>('all');
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
