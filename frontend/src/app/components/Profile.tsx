@@ -48,6 +48,9 @@ const CERTS = [
 ];
 
 export function Profile({ navigate }: NavProps) {
+  const stored = localStorage.getItem("user");
+  const user: { name: string; email: string; role: string } = stored ? JSON.parse(stored) : { name: "User", email: "", role: "seeker" };
+  const initials = user.name ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "U";
   return (
     <div className="flex flex-col flex-1 bg-background min-h-0 overflow-y-auto">
       {/* Header */}
@@ -74,7 +77,7 @@ export function Profile({ navigate }: NavProps) {
               SC
             </div>
             <div className="flex-1">
-              <h2 className="font-bold text-foreground" style={{ fontSize: '18px' }}>Sarah Chen</h2>
+              <h2 className="font-bold text-foreground" style={{ fontSize: '18px' }}>{user.name}</h2>
               <p className="text-muted-foreground" style={{ fontSize: '14px' }}>Senior Product Designer</p>
               <div className="flex items-center gap-1 mt-1 text-muted-foreground" style={{ fontSize: '12px' }}>
                 <MapPin className="w-3 h-3" />

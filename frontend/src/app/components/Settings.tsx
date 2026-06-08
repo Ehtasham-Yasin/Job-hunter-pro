@@ -19,6 +19,9 @@ function Toggle({ checked, onChange }: ToggleProps) {
 }
 
 export function Settings({ navigate, goBack, darkMode, toggleDarkMode }: NavProps) {
+  const stored = localStorage.getItem("user");
+  const user = stored ? JSON.parse(stored) : { name: "User", email: "" };
+  const initials = user.name ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2) : "U";
   const [notifs, setNotifs] = useState({
     jobAlerts: true,
     interviews: true,
@@ -51,10 +54,10 @@ export function Settings({ navigate, goBack, darkMode, toggleDarkMode }: NavProp
           </div>
           <div className="p-4 flex items-center gap-3">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center text-white font-bold" style={{ fontSize: '18px' }}>
-              SC
+              {initials}
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-foreground">Sarah Chen</p>
+              <p className="font-semibold text-foreground">{user.name}</p>
               <p className="text-muted-foreground" style={{ fontSize: '13px' }}>sarah@example.com</p>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground" />

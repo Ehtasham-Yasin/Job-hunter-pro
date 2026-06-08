@@ -22,13 +22,19 @@ const ACTIVITY = [
 ];
 
 export function Dashboard({ navigate }: NavProps) {
+  const stored = localStorage.getItem('user');
+  const user = stored ? JSON.parse(stored) : { name: 'User', role: 'seeker' };
+  const initials = user.name
+    ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'U';
+
   return (
     <div className="flex flex-col flex-1 bg-background min-h-0 overflow-y-auto">
       {/* Header */}
       <div className="px-5 pt-14 pb-2 flex items-center justify-between shrink-0">
         <div>
           <p className="text-muted-foreground" style={{ fontSize: '13px' }}>Good morning 👋</p>
-          <h1 className="font-bold text-foreground" style={{ fontSize: '22px' }}>Sarah Chen</h1>
+          <h1 className="font-bold text-foreground" style={{ fontSize: '22px' }}>{user.name}</h1>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -39,7 +45,7 @@ export function Dashboard({ navigate }: NavProps) {
             <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
           </button>
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white font-semibold" style={{ fontSize: '14px' }}>
-            SC
+            {initials}
           </div>
         </div>
       </div>

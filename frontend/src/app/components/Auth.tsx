@@ -4,12 +4,59 @@ import type { NavProps } from '../types';
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
 
+const API_URL = 'http://localhost:4000';
+
 export function Auth({ navigate, goBack }: NavProps) {
   const [mode, setMode] = useState<AuthMode>('signin');
   const [showPass, setShowPass] = useState(false);
-  const [role, setRole] = useState('Product Designer');
+  const [role, setRole] = useState('seeker');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const ROLES = ['Product Designer', 'Software Engineer', 'Data Scientist', 'Marketing Manager', 'Other'];
+  const ROLES = [
+    { label: 'Job Seeker', value: 'seeker' },
+    { label: 'Recruiter', value: 'recruiter' },
+  ];
+
+  const handleSubmit = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const endpoint = mode === 'signin' ? '/api/auth/login' : '/api/auth/register';
+      const body = mode === 'signin'
+        ? { email, password }
+        : { name, email, password, role };
+
+      const res = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong');
+        return;
+      }
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      if (data.user.role === 'recruiter') {
+        navigate('recruiterDashboard');
+      } else {
+        navigate('home');
+      }
+    } catch (err) {
+      setError('Cannot connect to server. Make sure backend is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (mode === 'forgot') {
     return (
@@ -44,7 +91,6 @@ export function Auth({ navigate, goBack }: NavProps) {
 
   return (
     <div className="flex flex-col flex-1 bg-background min-h-0 overflow-y-auto">
-      {/* Header */}
       <div className="px-6 pt-14 flex items-center gap-3">
         <button onClick={goBack} className="text-muted-foreground">
           <ChevronLeft className="w-5 h-5" />
@@ -66,29 +112,31 @@ export function Auth({ navigate, goBack }: NavProps) {
           {mode === 'signin' ? 'Sign in to continue your job search.' : 'Start your AI-powered career journey.'}
         </p>
 
-        {/* Mode toggle */}
         <div className="mt-6 bg-muted rounded-xl p-1 flex">
           <button
-            onClick={() => setMode('signin')}
-            className={`flex-1 py-2 rounded-lg transition-all font-medium ${
-              mode === 'signin' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
-            }`}
+            onClick={() => { setMode('signin'); setError(''); }}
+            className={`flex-1 py-2 rounded-lg transition-all font-medium ${mode === 'signin' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
+              }`}
             style={{ fontSize: '14px' }}
           >
             Sign In
           </button>
           <button
-            onClick={() => setMode('signup')}
-            className={`flex-1 py-2 rounded-lg transition-all font-medium ${
-              mode === 'signup' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
-            }`}
+            onClick={() => { setMode('signup'); setError(''); }}
+            className={`flex-1 py-2 rounded-lg transition-all font-medium ${mode === 'signup' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'
+              }`}
             style={{ fontSize: '14px' }}
           >
             Sign Up
           </button>
         </div>
 
-        {/* Form */}
+        {error && (
+          <div className="mt-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+            <p className="text-red-500 text-sm">{error}</p>
+          </div>
+        )}
+
         <div className="mt-6 flex flex-col gap-4">
           {mode === 'signup' && (
             <div>
@@ -96,6 +144,8 @@ export function Auth({ navigate, goBack }: NavProps) {
               <input
                 type="text"
                 placeholder="Sarah Chen"
+                value={name}
+                onChange={e => setName(e.target.value)}
                 className="w-full bg-input-background border border-border rounded-xl px-4 py-3.5 text-foreground outline-none focus:border-primary transition-colors"
                 style={{ fontSize: '15px' }}
               />
@@ -107,6 +157,8 @@ export function Auth({ navigate, goBack }: NavProps) {
             <input
               type="email"
               placeholder="sarah@example.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               className="w-full bg-input-background border border-border rounded-xl px-4 py-3.5 text-foreground outline-none focus:border-primary transition-colors"
               style={{ fontSize: '15px' }}
             />
@@ -118,6 +170,8 @@ export function Auth({ navigate, goBack }: NavProps) {
               <input
                 type={showPass ? 'text' : 'password'}
                 placeholder="••••••••"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
                 className="w-full bg-input-background border border-border rounded-xl px-4 py-3.5 pr-12 text-foreground outline-none focus:border-primary transition-colors"
                 style={{ fontSize: '15px' }}
               />
@@ -132,20 +186,19 @@ export function Auth({ navigate, goBack }: NavProps) {
 
           {mode === 'signup' && (
             <div>
-              <label className="text-foreground mb-1.5 block" style={{ fontSize: '13px', fontWeight: 500 }}>I'm a...</label>
-              <div className="flex flex-wrap gap-2">
+              <label className="text-foreground mb-1.5 block" style={{ fontSize: '13px', fontWeight: 500 }}>I am a...</label>
+              <div className="flex gap-3">
                 {ROLES.map(r => (
                   <button
-                    key={r}
-                    onClick={() => setRole(r)}
-                    className={`px-3 py-1.5 rounded-full border transition-colors ${
-                      role === r
-                        ? 'bg-primary text-white border-primary'
-                        : 'border-border text-muted-foreground hover:border-primary hover:text-primary'
-                    }`}
-                    style={{ fontSize: '13px' }}
+                    key={r.value}
+                    onClick={() => setRole(r.value)}
+                    className={`flex-1 py-3 rounded-xl border transition-colors font-medium ${role === r.value
+                      ? 'bg-primary text-white border-primary'
+                      : 'border-border text-muted-foreground hover:border-primary hover:text-primary'
+                      }`}
+                    style={{ fontSize: '14px' }}
                   >
-                    {r}
+                    {r.label}
                   </button>
                 ))}
               </div>
@@ -159,46 +212,15 @@ export function Auth({ navigate, goBack }: NavProps) {
           )}
 
           <button
-            onClick={() => navigate('home')}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold shadow-lg shadow-blue-500/20 mt-2"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-violet-600 text-white font-semibold shadow-lg shadow-blue-500/20 mt-2 disabled:opacity-60"
           >
-            {mode === 'signin' ? 'Sign In' : 'Create Account'}
+            {loading ? 'Please wait...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
           </button>
         </div>
 
-        {/* Divider */}
-        <div className="flex items-center gap-4 my-6">
-          <div className="flex-1 h-px bg-border" />
-          <span className="text-muted-foreground" style={{ fontSize: '13px' }}>or continue with</span>
-          <div className="flex-1 h-px bg-border" />
-        </div>
-
-        {/* Social */}
-        <div className="flex flex-col gap-3 pb-8">
-          {[
-            { name: 'Google', color: '#4285F4', letter: 'G' },
-            { name: 'LinkedIn', color: '#0A66C2', letter: 'in' },
-            { name: 'Apple', color: '#000', letter: '' },
-          ].map(({ name, color, letter }) => (
-            <button
-              key={name}
-              onClick={() => navigate('home')}
-              className="w-full py-3.5 rounded-xl border border-border bg-card flex items-center justify-center gap-3 hover:bg-muted transition-colors"
-            >
-              <div
-                className="w-5 h-5 rounded flex items-center justify-center text-white font-bold"
-                style={{ background: color, fontSize: '11px' }}
-              >
-                {letter}
-              </div>
-              <span className="text-foreground font-medium" style={{ fontSize: '15px' }}>
-                Continue with {name}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <p className="text-center text-muted-foreground mb-8" style={{ fontSize: '12px' }}>
+        <p className="text-center text-muted-foreground mt-8 mb-8" style={{ fontSize: '12px' }}>
           By continuing you agree to our{' '}
           <span className="text-primary">Terms of Service</span> and{' '}
           <span className="text-primary">Privacy Policy</span>
