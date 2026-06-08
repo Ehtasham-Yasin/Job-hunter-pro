@@ -40,7 +40,7 @@ router.post("/register", async (req: Request, res: Response) => {
 
     res.status(201).json({
       token,
-      user: { id: user.id, name: user.name, role: user.role },
+      user: { id: user.id, name: user.name, role: user.role, email: user.email },
     });
   } catch (error) {
     console.error("Register error:", error);
@@ -71,7 +71,7 @@ router.post("/login", async (req: Request, res: Response) => {
 
     res.json({
       token,
-      user: { id: user.id, name: user.name, role: user.role },
+      user: { id: user.id, name: user.name, role: user.role, email: user.email },
     });
   } catch (error) {
     console.error("Login error:", error);
